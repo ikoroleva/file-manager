@@ -1,11 +1,11 @@
-import { up, cd, ls } from '../commands/navigation.js';
-import { cat, add, mkdir, rn, cp, mv, rm } from '../commands/basics.js';
+import { up, cd, ls } from './commands/navigation.js';
+/* import { cat, add, mkdir, rn, cp, mv, rm } from '../commands/basics.js';
 import { osCommand } from '../commands/osCommand.js';
 import { hash } from '../commands/hash.js';
-import { compress, decompress } from '../commands/zlib.js';
+import { compress, decompress } from '../commands/zlib.js'; */
 
 
-export async function commandRouter(input) {
+export function commandRouter(input) {
   const [command, ...args] = input.split(' ');
 
   try {
@@ -16,7 +16,7 @@ export async function commandRouter(input) {
       }
 
       case 'cd': {
-        cd(args);
+        cd(args[0]);
         break;
       }
 
@@ -25,7 +25,7 @@ export async function commandRouter(input) {
         break;
       }
 
-      case 'cat': {
+      /* case 'cat': {
         cat(args);
         break;
       }
@@ -78,7 +78,7 @@ export async function commandRouter(input) {
       case 'decompress': {
         decompress(args);
         break;
-      }
+      } */
 
       default:
         console.log('Invalid input');
