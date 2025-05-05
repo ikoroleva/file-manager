@@ -1,0 +1,31 @@
+import os from 'os';
+import { commandRouter } from './commandRouter.js';
+
+const prompt = () => {
+  process.stdout.write(`${process.cwd()}> `);
+}
+
+const args = process.argv.slice(2);
+const usernameArg = args.find(arg => arg.startsWith('--username='));
+const username = usernameArg ? usernameArg.split('=')[1] : 'Anonymous';
+console.log(`Welcome to the File Manager, ${username}!`);
+
+process.chdir(os.homedir());
+
+console.log(`You are currently in ${process.cwd()}`);
+prompt();
+
+process.stdin.on('data', async data => {
+  const input = data.toString().trim();
+  if (input === '.exit') {
+    console.log(`Thank you for using File Manager, ${username}, goodbye!`);
+    process.exit();
+  }
+  await commandRouter(input);
+  prompt();
+});
+
+process.on('SIGINT', () => {
+  console.log(`Thank you for using File Manager, ${username}, goodbye!`);
+  process.exit();
+});
