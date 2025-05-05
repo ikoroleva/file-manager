@@ -12,8 +12,7 @@ console.log(`Welcome to the File Manager, ${username}!`);
 
 process.chdir(os.homedir());
 
-const currentDir = process.cwd();
-console.log(`You are currently in ${currentDir}`);
+console.log(`You are currently in ${process.cwd()}`);
 prompt();
 
 process.stdin.on('data', async data => {
