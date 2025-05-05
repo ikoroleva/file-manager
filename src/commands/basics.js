@@ -1,122 +1,130 @@
 import fs from 'fs';
 import path from 'path';
+import { writeFile, mkdir, rename, unlink } from 'fs/promises';
+import { resolvePath } from '../utils/resolvePath.js';
 
 export const cat = (filePath) => {
-  let currentDir = process.cwd();
-  const resolvedPath = path.isAbsolute(filePath)
-    ? filePath
-    : path.resolve(currentDir, filePath);
+  return new Promise((resolve, reject) => {
+    const resolvedPath = resolvePath(filePath);
+    const readableStream = fs.createReadStream(resolvedPath, { encoding: 'utf-8' });
 
-  const readableStream = fs.createReadStream(resolvedPath, { encoding: 'utf-8' });
+    readableStream.on('data', chunk => {
+      process.stdout.write(chunk);
+    });
 
-  readableStream.on('data', (chunk) => {
-    process.stdout.write(chunk);
-  });
+    readableStream.on('error', err => {
+      console.error(`Error reading file: ${err.message}`);
+      reject(err);
+    });
 
-  readableStream.on('error', (err) => {
-    console.error(`Error reading file: ${err.message}`);
-  });
-
-  readableStream.on('end', () => {
-    console.log('\nFile reading completed.');
-  });
-};
-
-export const add = (fileName) => {
-  const absolutePath = path.resolve(fileName);
-
-  fs.writeFile(absolutePath, '', (err) => {
-    if (err) {
-      console.error(`Error creating file: ${err.message}`);
-    } else {
-      console.log(`File "${fileName}" created successfully.`);
-    }
+    readableStream.on('end', () => {
+      console.log('\nFile reading completed.');
+      resolve();
+    });
   });
 };
 
-export const mkdir = (directoryName) => {
-  const absolutePath = path.resolve(directoryName);
-
-  fs.mkdir(absolutePath, { recursive: true }, (err) => {
-    if (err) {
-      console.error(`Error creating directory: ${err.message}`);
-    } else {
-      console.log(`Directory "${directoryName}" created successfully.`);
-    }
-  });
+export const add = async (fileName) => {
+  try {
+    const resolvedPath = resolvePath(fileName);
+    await writeFile(resolvedPath, '');
+    console.log(`File "${fileName}" created successfully.`);
+  } catch (err) {
+    console.error(`Error creating file: ${err.message}`);
+  }
 };
 
-export const rn = (filePath, newFileName) => {
-  const absolutePath = path.resolve(filePath);
-  const newAbsolutePath = path.resolve(path.dirname(filePath), newFileName);
+export const makedir = async (directoryName) => {
+  try {
+    const resolvedPath = resolvePath(directoryName);
 
-  fs.rename(absolutePath, newAbsolutePath, (err) => {
-    if (err) {
-      console.error(`Error renaming file: ${err.message}`);
-    } else {
-      console.log(`File renamed to "${newFileName}" successfully.`);
-    }
-  });
+    await mkdir(resolvedPath, { recursive: true });
+    console.log(`Directory "${resolvedPath}" created successfully.`);
+  } catch (err) {
+    console.error(`Error creating directory: ${err.message}`);
+  }
 };
 
-export const cp = (filePath, newDirectoryPath) => {
-  const absolutePath = path.resolve(filePath);
-  const newAbsolutePath = path.resolve(newDirectoryPath, path.basename(filePath));
+export const rn = async (filePath, newFileName) => {
+  try {
+    const resolvedPath = resolvePath(filePath);
+    const newResolvedPath = resolvePath(path.dirname(filePath), newFileName);
 
-  const readableStream = fs.createReadStream(absolutePath);
-  const writableStream = fs.createWriteStream(newAbsolutePath);
-
-  readableStream.pipe(writableStream);
-
-  readableStream.on('error', (err) => {
-    console.error(`Error reading file: ${err.message}`);
-  });
-
-  writableStream.on('error', (err) => {
-    console.error(`Error writing file: ${err.message}`);
-  });
-
-  writableStream.on('finish', () => {
-    console.log(`File copied to "${newAbsolutePath}" successfully.`);
-  });
+    await rename(resolvedPath, newResolvedPath);
+    console.log(`File renamed to "${newFileName}" successfully.`);
+  }
+  catch (err) {
+    console.error(`Error renaming file: ${err.message}`);
+  }
 };
 
-export const mv = (filePath, newDirectoryPath) => {
-  const absolutePath = path.resolve(filePath);
-  const newAbsolutePath = path.resolve(newDirectoryPath, path.basename(filePath));
+export const cp = async (filePath, newDirectoryPath) => {
+  return new Promise((resolve, reject) => {
+    const source = resolvePath(filePath);
+    const dest = resolvePath(newDirectoryPath, path.basename(filePath));
 
-  const readableStream = fs.createReadStream(absolutePath);
-  const writableStream = fs.createWriteStream(newAbsolutePath);
+    const readableStream = fs.createReadStream(source);
+    const writableStream = fs.createWriteStream(dest);
 
-  readableStream.pipe(writableStream);
+    readableStream.pipe(writableStream);
 
-  readableStream.on('error', (err) => {
-    console.error(`Error reading file: ${err.message}`);
+    readableStream.on('error', (err) => {
+      console.error(`Error reading file: ${err.message}`);
+      reject(err);
+    });
+
+    writableStream.on('error', (err) => {
+      console.error(`Error writing file: ${err.message}`);
+      reject(err);
+    });
+
+    writableStream.on('finish', () => {
+      console.log(`File copied to "${dest}" successfully.`);
+      resolve();
+    });
   });
+}
 
-  writableStream.on('error', (err) => {
-    console.error(`Error writing file: ${err.message}`);
-  });
+export const mv = async (filePath, newDirectoryPath) => {
+  return new Promise((resolve, reject) => {
+    const source = resolvePath(filePath);
+    const dest = resolvePath(newDirectoryPath, path.basename(filePath));
 
-  writableStream.on('finish', () => {
-    fs.unlink(absolutePath, (err) => {
-      if (err) {
+    const readableStream = fs.createReadStream(source);
+    const writableStream = fs.createWriteStream(dest);
+
+    readableStream.pipe(writableStream);
+
+    readableStream.on('error', (err) => {
+      console.error(`Error reading file: ${err.message}`);
+      reject(err);
+    });
+
+    writableStream.on('error', (err) => {
+      console.error(`Error writing file: ${err.message}`);
+      reject(err);
+    });
+
+    writableStream.on('finish', async () => {
+      try {
+        await unlink(source);
+        console.log(`File moved to "${dest}" successfully.`);
+        resolve();
+      } catch (err) {
         console.error(`Error deleting original file: ${err.message}`);
-      } else {
-        console.log(`File moved to "${newAbsolutePath}" successfully.`);
+        reject(err);
       }
     });
   });
 };
 
-export const rm = (filePath) => {
-  const absolutePath = path.resolve(filePath);
+export const rm = async (filePath) => {
+  try {
+    const resolvedPath = resolvePath(filePath);
 
-  fs.unlink(absolutePath, (err) => {
-    if (err) {
-      console.error(`Error deleting file: ${err.message}`);
-    } else {
-      console.log(`File "${filePath}" deleted successfully.`);
-    }
-  });
+    await unlink(resolvedPath);
+    console.log(`File "${filePath}" deleted successfully.`);
+  } catch (err) {
+    console.error(`Error deleting file: ${err.message}`);
+  }
 };

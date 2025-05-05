@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { resolvePath } from '../utils/resolvePath.js';
 
 const isAtRoot = (dir) => {
   return os.homedir() === dir;
@@ -24,9 +25,7 @@ export const cd = (targetPath) => {
     return;
   }
 
-  const resolvedPath = path.isAbsolute(targetPath)
-    ? targetPath
-    : path.resolve(currentDir, targetPath);
+  const resolvedPath = resolvePath(targetPath);
 
   try {
     if (fs.existsSync(resolvedPath) && fs.lstatSync(resolvedPath).isDirectory()) {

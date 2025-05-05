@@ -1,12 +1,11 @@
 import { up, cd, ls } from './commands/navigation.js';
-import { cat, add, mkdir, rn, cp, mv, rm } from './commands/basics.js';
+import { cat, add, makedir, rn, cp, mv, rm } from './commands/basics.js';
 import { osCommand } from './commands/osCommand.js';
-/* import { hash } from './commands/hash.js';
-import { compress, decompress } from './commands/zlib.js'; */
-
+import { hash } from './commands/hash.js';
+import { compress, decompress } from './commands/zlib.js';
 
 export async function commandRouter(input) {
-  const [command, path, newPath] = input.split(' ');
+  const [command, ...args] = input.split(' ');
 
   try {
     switch (command) {
@@ -14,72 +13,58 @@ export async function commandRouter(input) {
         up();
         break;
       }
-
       case 'cd': {
-        cd(path);
+        cd(args[0]);
         break;
       }
-
       case 'ls': {
         ls();
         break;
       }
-
       case 'cat': {
-        await cat(path);
+        await cat(args[0]);
         break;
       }
-
       case 'add': {
-        add(path);
+        await add(args[0]);
         break;
       }
-
       case 'mkdir': {
-        mkdir(path);
+        await makedir(args[0]);
         break;
       }
-
       case 'rn': {
-        rn(path, newPath);
+        await rn(args[0], args[1]);
         break;
       }
-
       case 'cp': {
-        cp(path, newPath);
+        await cp(args[0], args[1]);
         break;
       }
-
       case 'mv': {
-        mv(path, newPath);
+        await mv(args[0], args[1]);
         break;
       }
-
       case 'rm': {
-        rm(path);
+        await rm(args[0]);
         break;
       }
-
       case 'os': {
-        osCommand(path);
+        osCommand(args[0]);
         break;
       }
-
-      /* case 'hash': {
-        hash(args);
+      case 'hash': {
+        await hash(args[0]);
         break;
       }
-
       case 'compress': {
-        compress(args);
+        await compress(args[0], args[1]);
         break;
       }
-
       case 'decompress': {
-        decompress(args);
+        await decompress(args[0], args[1]);
         break;
-      } */
-
+      }
       default:
         console.log('Invalid input');
     }
