@@ -16,13 +16,13 @@ const currentDir = process.cwd();
 console.log(`You are currently in ${currentDir}`);
 prompt();
 
-process.stdin.on('data', data => {
+process.stdin.on('data', async data => {
   const input = data.toString().trim();
   if (input === '.exit') {
     console.log(`Thank you for using File Manager, ${username}, goodbye!`);
     process.exit();
   }
-  commandRouter(input);
+  await commandRouter(input);
   prompt();
 });
 

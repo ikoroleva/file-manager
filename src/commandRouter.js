@@ -1,12 +1,12 @@
 import { up, cd, ls } from './commands/navigation.js';
-/* import { cat, add, mkdir, rn, cp, mv, rm } from '../commands/basics.js';
-import { osCommand } from '../commands/osCommand.js';
-import { hash } from '../commands/hash.js';
-import { compress, decompress } from '../commands/zlib.js'; */
+import { cat, add, mkdir, rn, cp, mv, rm } from './commands/basics.js';
+import { osCommand } from './commands/osCommand.js';
+/* import { hash } from './commands/hash.js';
+import { compress, decompress } from './commands/zlib.js'; */
 
 
-export function commandRouter(input) {
-  const [command, ...args] = input.split(' ');
+export async function commandRouter(input) {
+  const [command, path, newPath] = input.split(' ');
 
   try {
     switch (command) {
@@ -16,7 +16,7 @@ export function commandRouter(input) {
       }
 
       case 'cd': {
-        cd(args[0]);
+        cd(path);
         break;
       }
 
@@ -25,47 +25,47 @@ export function commandRouter(input) {
         break;
       }
 
-      /* case 'cat': {
-        cat(args);
+      case 'cat': {
+        await cat(path);
         break;
       }
 
       case 'add': {
-        add(args);
+        add(path);
         break;
       }
 
       case 'mkdir': {
-        mkdir(args);
+        mkdir(path);
         break;
       }
 
       case 'rn': {
-        rn(args);
+        rn(path, newPath);
         break;
       }
 
       case 'cp': {
-        cp(args);
+        cp(path, newPath);
         break;
       }
 
       case 'mv': {
-        mv(args);
+        mv(path, newPath);
         break;
       }
 
       case 'rm': {
-        rm(args);
+        rm(path);
         break;
       }
 
       case 'os': {
-        osCommand(args);
+        osCommand(path);
         break;
       }
 
-      case 'hash': {
+      /* case 'hash': {
         hash(args);
         break;
       }
